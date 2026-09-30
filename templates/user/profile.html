@@ -1,0 +1,79 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}User Profile{% endblock %}
+{% block page_heading %}User Profile{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 800px;">
+    <!-- Profile Card Header -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-sm-row align-items-center gap-4">
+                <div class="user-avatar" style="width: 80px; height: 80px; font-size: 2rem;">
+                    {{ current_user.full_name[:1] | upper }}
+                </div>
+                <div class="text-center text-sm-start">
+                    <h4 class="fw-bold mb-1">{{ current_user.full_name }}</h4>
+                    <p class="text-muted mb-2"><i class="bi bi-envelope me-1"></i>{{ current_user.email }}</p>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-sm-start">
+                        <span class="badge bg-success-subtle text-success">
+                            <i class="bi bi-check-circle-fill me-1"></i>Active Account
+                        </span>
+                        <span class="badge bg-primary-subtle text-primary">
+                            <i class="bi bi-folder-fill me-1"></i>{{ doc_count }} Documents Stored
+                        </span>
+                        <span class="badge bg-secondary-subtle text-secondary">
+                            Member since {{ current_user.created_at.strftime('%B %Y') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Form -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="fw-bold mb-0">Personal Information</h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('user.profile') }}">
+                <!-- Full Name -->
+                <div class="mb-3">
+                    <label for="full_name" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" value="{{ current_user.full_name }}" required>
+                </div>
+
+                <!-- Email (Read-only) -->
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-semibold">Email Address</label>
+                    <input type="email" class="form-control bg-light" id="email" value="{{ current_user.email }}" readonly>
+                    <div class="form-text">Your email address serves as your primary account ID and cannot be changed.</div>
+                </div>
+
+                <!-- Phone -->
+                <div class="mb-3">
+                    <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}" placeholder="+1 234 567 8900">
+                </div>
+
+                <!-- Account Created Date -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Account Registration Date</label>
+                    <input type="text" class="form-control bg-light" value="{{ current_user.created_at.strftime('%A, %B %d, %Y at %I:%M %p') }}" readonly>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check2-circle me-1"></i> Update Profile
+                    </button>
+                    <a href="{{ url_for('user.change_password') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-key me-1"></i> Change Password
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}Categories{% endblock %}
+{% block page_heading %}Document Categories{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1">Browse by Category</h3>
+            <p class="text-muted mb-0">Select any category to view all corresponding documents in your vault.</p>
+        </div>
+        <a href="{{ url_for('user.upload') }}" class="btn btn-primary">
+            <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload to Category
+        </a>
+    </div>
+
+    <!-- Category Grid -->
+    <div class="row g-4">
+        {% for item in categories_data %}
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="{{ url_for('user.documents', category=item.category.id) }}" class="category-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="stat-icon primary">
+                            {% if item.category.name|lower == 'education' %}
+                                <i class="bi bi-mortarboard-fill"></i>
+                            {% elif item.category.name|lower == 'identity' %}
+                                <i class="bi bi-person-badge-fill"></i>
+                            {% elif item.category.name|lower == 'career' %}
+                                <i class="bi bi-briefcase-fill"></i>
+                            {% elif item.category.name|lower == 'financial' %}
+                                <i class="bi bi-bank2"></i>
+                            {% elif item.category.name|lower == 'bills' %}
+                                <i class="bi bi-receipt-cutoff"></i>
+                            {% elif item.category.name|lower == 'certificates' %}
+                                <i class="bi bi-patch-check-fill"></i>
+                            {% elif item.category.name|lower == 'medical' %}
+                                <i class="bi bi-heart-pulse-fill"></i>
+                            {% else %}
+                                <i class="bi bi-folder-fill"></i>
+                            {% endif %}
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-1 rounded-pill">
+                            {{ item.count }} files
+                        </span>
+                    </div>
+
+                    <h5 class="fw-bold mb-2 text-dark">{{ item.category.name }}</h5>
+                    <p class="text-muted small mb-0 line-clamp-2" style="min-height: 40px;">
+                        {{ item.category.description or 'No description available for this category.' }}
+                    </p>
+
+                    <div class="mt-3 pt-3 border-top d-flex align-items-center justify-content-between text-primary small fw-semibold">
+                        <span>Explore documents</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

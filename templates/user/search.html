@@ -1,0 +1,145 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}Search Documents{% endblock %}
+{% block page_heading %}Search Documents{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-search me-2 text-primary"></i>Advanced Document Search & Filters</h5>
+            
+            <form method="GET" action="{{ url_for('user.search') }}">
+                <div class="row g-3 align-items-end">
+                    <!-- Keyword input -->
+                    <div class="col-12 col-lg-5">
+                        <label class="form-label small fw-semibold">Keywords</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" class="form-control" name="q" value="{{ query_str or '' }}" placeholder="Search by document name, remarks, or filename...">
+                        </div>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="form-label small fw-semibold">Category</label>
+                        <select class="form-select" name="category">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>
+                                {{ cat.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- File Type Filter -->
+                    <div class="col-12 col-sm-6 col-lg-2">
+                        <label class="form-label small fw-semibold">File Type</label>
+                        <select class="form-select" name="file_type">
+                            <option value="">All Formats</option>
+                            {% for ft in file_types %}
+                            <option value="{{ ft }}" {% if selected_file_type == ft %}selected{% endif %}>
+                                {{ ft }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Submit & Clear Buttons -->
+                    <div class="col-12 col-lg-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1" title="Search">
+                            <i class="bi bi-search me-1"></i> Search
+                        </button>
+                        <a href="{{ url_for('user.search') }}" class="btn btn-outline-secondary" title="Clear Filters">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0">Search Results ({{ results|length }} found)</h6>
+        </div>
+        <div class="card-body p-0">
+            {% if results %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-4">Document Details</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Size</th>
+                            <th scope="col">Upload Date</th>
+                            <th scope="col" class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in results %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi {{ doc.file_icon }} fs-3"></i>
+                                    <div>
+                                        <a href="{{ url_for('user.view_document', doc_id=doc.id) }}" class="fw-bold text-dark text-decoration-none">
+                                            {{ doc.document_name }}
+                                        </a>
+                                        <div class="small text-muted text-truncate" style="max-width: 280px;">
+                                            {{ doc.description or doc.original_filename }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    {{ doc.category.name if doc.category else 'Other' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary-subtle text-secondary fw-semibold">{{ doc.file_type }}</span>
+                            </td>
+                            <td class="small text-muted">{{ doc.formatted_file_size }}</td>
+                            <td class="small text-muted">{{ doc.upload_date.strftime('%b %d, %Y') }}</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('user.view_document', doc_id=doc.id) }}" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="View Document">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('user.download_document', doc_id=doc.id) }}" class="btn btn-outline-success" data-bs-toggle="tooltip" title="Download">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    <a href="{{ url_for('user.edit_document', doc_id=doc.id) }}" class="btn btn-outline-warning" data-bs-toggle="tooltip" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal"
+                                        data-action-url="{{ url_for('user.delete_document', doc_id=doc.id) }}"
+                                        data-item-name="{{ doc.document_name }}"
+                                        data-item-type="document">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-search display-4 text-muted mb-3 d-block"></i>
+                <h5 class="fw-bold">No documents matched your criteria</h5>
+                <p class="text-muted small mb-3">Try adjusting your keywords or clearing the category and date filters.</p>
+                <a href="{{ url_for('user.search') }}" class="btn btn-outline-primary btn-sm">
+                    Reset All Filters
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

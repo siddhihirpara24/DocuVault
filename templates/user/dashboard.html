@@ -1,0 +1,206 @@
+{% extends "user/base_user.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_heading %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Welcome Header -->
+    <div
+        class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1">Welcome, <span class="text-primary">{{ current_user.full_name }}</span></h3>
+            <p class="text-muted mb-0">Here is an overview of your stored personal documents and categories.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('user.upload') }}" class="btn btn-primary">
+                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload Document
+            </a>
+            <a href="{{ url_for('user.search') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-search me-1"></i> Search
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards Grid -->
+    <div class="row g-3 mb-4">
+        <!-- Total Documents -->
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="stat-card stat-primary">
+                <div class="stat-icon primary">
+                    <i class="bi bi-folder2-open"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-label">Total Documents</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Education Documents -->
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="stat-card stat-success">
+                <div class="stat-icon success">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ stats.education }}</div>
+                    <div class="stat-label">Education</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Identity Documents -->
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="stat-card stat-info">
+                <div class="stat-icon info">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ stats.identity }}</div>
+                    <div class="stat-label">Identity</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Career Documents -->
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="stat-card stat-warning">
+                <div class="stat-icon warning">
+                    <i class="bi bi-briefcase-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ stats.career }}</div>
+                    <div class="stat-label">Career</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Documents -->
+        <div class="col-12 col-sm-6 col-xl">
+            <div class="stat-card stat-purple">
+                <div class="stat-icon purple">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ stats.other }}</div>
+                    <div class="stat-label">Other Files</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Banner -->
+    <div class="card bg-white mb-4 border-0 shadow-sm">
+        <div class="card-body p-4">
+            <h6 class="fw-bold text-uppercase text-muted small mb-3">Quick Actions</h6>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('user.upload') }}" class="btn btn-outline-primary btn-sm px-3">
+                    <i class="bi bi-plus-lg me-1"></i> Upload New Document
+                </a>
+                <a href="{{ url_for('user.documents') }}" class="btn btn-outline-secondary btn-sm px-3">
+                    <i class="bi bi-grid-3x3-gap-fill me-1"></i> View All Documents
+                </a>
+                <a href="{{ url_for('user.search') }}" class="btn btn-outline-secondary btn-sm px-3">
+                    <i class="bi bi-funnel-fill me-1"></i> Advanced Filter
+                </a>
+                <a href="{{ url_for('user.categories') }}" class="btn btn-outline-secondary btn-sm px-3">
+                    <i class="bi bi-tags-fill me-1"></i> Browse Categories
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Documents Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Documents</h5>
+            <a href="{{ url_for('user.documents') }}" class="btn btn-sm btn-link text-decoration-none fw-semibold">
+                View All ({{ stats.total }}) &rarr;
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if recent_docs %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-4">Document Name</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">File Type</th>
+                            <th scope="col">Upload Date</th>
+                            <th scope="col" class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in recent_docs %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi {{ doc.file_icon }} fs-4"></i>
+                                    <div>
+                                        <a href="{{ url_for('user.view_document', doc_id=doc.id) }}"
+                                            class="fw-bold text-dark text-decoration-none">
+                                            {{ doc.document_name }}
+                                        </a>
+                                        <div class="small text-muted text-truncate" style="max-width: 250px;">
+                                            {{ doc.original_filename }} ({{ doc.formatted_file_size }})
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    {{ doc.category.name if doc.category else 'Uncategorized' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary-subtle text-secondary fw-semibold">
+                                    {{ doc.file_type }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="small text-muted">{{ doc.upload_date.strftime('%b %d, %Y') }}</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('user.view_document', doc_id=doc.id) }}"
+                                        class="btn btn-outline-primary" data-bs-toggle="tooltip" title="View Document">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('user.download_document', doc_id=doc.id) }}"
+                                        class="btn btn-outline-success" data-bs-toggle="tooltip" title="Download">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    <a href="{{ url_for('user.edit_document', doc_id=doc.id) }}"
+                                        class="btn btn-outline-warning" data-bs-toggle="tooltip" title="Edit Metadata">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                                        data-bs-target="#deleteConfirmModal"
+                                        data-action-url="{{ url_for('user.delete_document', doc_id=doc.id) }}"
+                                        data-item-name="{{ doc.document_name }}" data-item-type="document"
+                                        data-bs-toggle="tooltip" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-folder-x display-4 text-muted mb-3 d-block"></i>
+                <h5 class="fw-bold">No documents uploaded yet</h5>
+                <p class="text-muted small mb-3">Begin by uploading your certificates, ID proofs, or resumes.</p>
+                <a href="{{ url_for('user.upload') }}" class="btn btn-primary">
+                    <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload First Document
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

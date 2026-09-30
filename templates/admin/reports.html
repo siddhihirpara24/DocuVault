@@ -1,0 +1,183 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}System Reports{% endblock %}
+{% block page_heading %}Reports & Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header with Export & Print Actions -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3 no-print">
+        <div>
+            <h3 class="fw-bold mb-1">System Audit & Usage Report</h3>
+            <p class="text-muted mb-0">Summary of platform storage, categorizations, file distribution, and user engagement.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.export_csv') }}" class="btn btn-outline-success">
+                <i class="bi bi-file-earmark-arrow-down-fill me-1"></i> Export Metadata CSV
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-print">
+                <i class="bi bi-printer-fill me-1"></i> Print Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Metrics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="text-muted small fw-semibold text-uppercase">Total Users</div>
+                <div class="display-6 fw-bold text-primary">{{ total_users }}</div>
+                <div class="small text-muted">{{ active_users }} active accounts</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="text-muted small fw-semibold text-uppercase">Total Documents</div>
+                <div class="display-6 fw-bold text-info">{{ total_docs }}</div>
+                <div class="small text-muted">Across all users</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="text-muted small fw-semibold text-uppercase">Active Rate</div>
+                <div class="display-6 fw-bold text-success">
+                    {% if total_users > 0 %}
+                        {{ ((active_users / total_users) * 100) | round | int }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </div>
+                <div class="small text-muted">System activity ratio</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="text-muted small fw-semibold text-uppercase">Top Category</div>
+                <div class="h3 fw-bold text-warning text-truncate mb-0 mt-2">{{ most_used_category }}</div>
+                <div class="small text-muted">Most uploaded tag</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Breakdown by Category -->
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-tags-fill me-2 text-primary"></i>Documents by Category</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive border-0">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Category</th>
+                                    <th class="text-center">Total Files</th>
+                                    <th class="text-end pe-3">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cat_name, doc_count in cat_data %}
+                                <tr>
+                                    <td class="ps-3 fw-semibold">{{ cat_name }}</td>
+                                    <td class="text-center">{{ doc_count }}</td>
+                                    <td class="text-end pe-3">
+                                        {% if total_docs > 0 %}
+                                            {{ ((doc_count / total_docs) * 100) | round(1) }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-3 text-muted">No category data available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breakdown by File Type -->
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-file-earmark-code-fill me-2 text-info"></i>Documents by File Type</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive border-0">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Extension</th>
+                                    <th class="text-center">Count</th>
+                                    <th class="text-end pe-3">Storage Consumed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for f_type, count, total_bytes in type_data %}
+                                <tr>
+                                    <td class="ps-3">
+                                        <span class="badge bg-secondary-subtle text-secondary fw-bold">{{ f_type }}</span>
+                                    </td>
+                                    <td class="text-center">{{ count }}</td>
+                                    <td class="text-end pe-3 small text-muted">
+                                        {% if total_bytes %}
+                                            {% if total_bytes > 1048576 %}
+                                                {{ (total_bytes / 1048576) | round(2) }} MB
+                                            {% else %}
+                                                {{ (total_bytes / 1024) | round(1) }} KB
+                                            {% endif %}
+                                        {% else %}
+                                            0 KB
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-3 text-muted">No file type data available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Uploads Activity -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h6 class="fw-bold mb-0"><i class="bi bi-calendar-event me-2 text-success"></i>Upload Activity by Month (Last 6 Months)</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive border-0">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Month</th>
+                            <th class="text-end pe-4">Documents Uploaded</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in monthly_data %}
+                        <tr>
+                            <td class="ps-3 fw-semibold">{{ m.month }}</td>
+                            <td class="text-end pe-4">
+                                <span class="badge bg-success-subtle text-success px-3 py-2 fs-6">
+                                    {{ m.count }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
